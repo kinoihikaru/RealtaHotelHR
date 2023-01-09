@@ -171,7 +171,7 @@ Namespace Repository
             Dim updateEmployee As New Employee()
 
             'declare stmt
-            Dim stmt As String = "Update dbo.region " &
+            Dim stmt As String = "Update hr.employee " &
                                  "set emp_national_id=@nationalId, emp_birth_date=@birthDate, emp_marital_status=@maritalStatus,
                                  emp_gender=@gender, emp_hire_date=@hireDate, emp_salaried_flag=@salariedFlag, 
                                  emp_vacation_hours=@vacationHours, emp_sickleave_hourse=@sickleaveHours, emp_current_flag=@currentFlag,
@@ -223,11 +223,8 @@ Namespace Repository
             Dim stmt As String = "hr.spUpdateEmployee @id, @nationalId, @birthDate, @maritalStatus, @Gender, @hireDate, 
                                   @salariedFlag, @vacationHours, @sickLeaveHours, @currentFlag, @photo, @modifiedDate, @empId, @joroId"
 
-
-
             Using conn As New SqlConnection With {.ConnectionString = _repositoryContext.GetConnection}
                 Using cmd As New SqlCommand With {.Connection = conn, .CommandText = stmt}
-                    cmd.Parameters.AddWithValue("@id", id)
                     cmd.Parameters.AddWithValue("@nationalId", nationalId)
                     cmd.Parameters.AddWithValue("@birthDate", birthDate)
                     cmd.Parameters.AddWithValue("@maritalStatus", maritalStatus)
@@ -241,6 +238,7 @@ Namespace Repository
                     cmd.Parameters.AddWithValue("@modifiedDate", modifiedDate)
                     cmd.Parameters.AddWithValue("@empId", empId)
                     cmd.Parameters.AddWithValue("@joroId", joroId)
+                    cmd.Parameters.AddWithValue("@id", id)
 
                     'show command
                     If showCommand Then

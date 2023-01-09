@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\RealtaHotelHRWebApi\RealtaHotelHRWebApi.vbproj" />
+    <ProjectReference Include="..\RealtaHotelHRWebApi\RealtaHotelLibDb.vbproj" />
   </ItemGroup>
 
 	<ItemGroup>
