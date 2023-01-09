@@ -1,4 +1,6 @@
 ﻿Imports System.Data.SqlClient
+Imports System.Reflection
+Imports System.Text.Json
 Imports RealtaHotelHRWebApi.Base
 Imports RealtaHotelHRWebApi.Model
 
@@ -102,37 +104,102 @@ Namespace Repository
             Dim newWorkOrders As New WorkOrders()
 
             'create query
-            Dim query As String = "insert into hr.work_order_detail(woro_id, woro_date, woro_status, woro_user_id)" &
+            Dim query As String = "SET IDENTITY_INSERT hr.work_orders ON;
+                insert into hr.work_order_detail(woro_id, woro_date, woro_status, woro_user_id)" &
                 "VALUE (@woro_id, @woro_date, @woro_status, @woro_user_id);" &
-                "select cast(scope_identity() as int)"
+                "SET IDENTITY_INSERT hr.work_orders OFF;"
 
             Using conn As New SqlConnection With {.ConnectionString = _repositoryContext.GetConnection}
                 Using cmd As New SqlCommand With {.Connection = conn, .CommandText = query}
+                    cmd.Parameters.AddWithValue("@woro_id", workOrders.WoroId)
+                    cmd.Parameters.AddWithValue("@woro_date", workOrders.WoroStartDate)
+                    cmd.Parameters.AddWithValue("@woro_status", workOrders.WoroStatus)
+                    cmd.Parameters.AddWithValue("@woro_user_id", workOrders.WoroUserId)
 
+                    Try
+                        conn.Open()
+                        'ExecuteScalar return 1 row & get first column
+                        Dim regionId As Int32 = Convert.ToInt32(cmd.ExecuteScalar())
+                        newWorkOrders = FindWorkOrdersById(workOrders.WoroId)
+
+                        conn.Close()
+                    Catch ex As Exception
+                        Console.WriteLine(ex.Message)
+                    End Try
                 End Using
             End Using
 
             Return newWorkOrders
         End Function
 
-        Public Function UpdateWorkOrders(id As Integer, showCommand As Integer) As Boolean Implements IWorkOrdersRepo.UpdateWorkOrders
-            Dim workorder As New WorkOrders()
+        Public Function UpdateWorkOrders(id As Integer, startDate As Date, status As String, userId As Integer, showCommand As Integer) As Boolean Implements IWorkOrdersRepo.UpdateWorkOrders
+            Dim WorkOrders As New WorkOrders()
 
-            'query
-            Dim query As String = ""
+            Dim query As String = "UPDATE hr.work_orders
+                                   set woro_date = @starDate,
+                                   woro_status = @status,
+                                   woro_user_id = @userId
+                                   WHERE woro_id = @id"
 
             Using conn As New SqlConnection With {.ConnectionString = _repositoryContext.GetConnection}
                 Using cmd As New SqlCommand With {.Connection = conn, .CommandText = query}
+                    cmd.Parameters.AddWithValue("@id", id)
+                    cmd.Parameters.AddWithValue("@starDate", startDate)
+                    cmd.Parameters.AddWithValue("@userId", status)
+                    cmd.Parameters.AddWithValue("@startDate", userId)
 
+
+                    If showCommand Then
+                        Console.WriteLine(cmd.CommandText)
+                    End If
+
+                    Try
+                        conn.Open()
+                        cmd.ExecuteNonQuery()
+
+                        conn.Close()
+                    Catch ex As Exception
+                        Console.WriteLine(ex.Message)
+                    End Try
                 End Using
             End Using
-
 
             Return True
         End Function
 
-        Public Function UpdateWorkOrdersSp(id As Integer, showCommand As Integer) As Boolean Implements IWorkOrdersRepo.UpdateWorkOrdersSp
-            Throw New NotImplementedException()
+        Public Function UpdateWorkOrdersSp(id As Integer, startDate As Date, status As String, userId As Integer, showCommand As Integer) As Boolean Implements IWorkOrdersRepo.UpdateWorkOrdersSp
+            Dim WorkOrders As New WorkOrders()
+
+            Dim query As String = "sPUpdateWorkOrders
+                                   @id,
+                                   @starDate,
+                                   @status,
+                                   @userId"
+
+            Using conn As New SqlConnection With {.ConnectionString = _repositoryContext.GetConnection}
+                Using cmd As New SqlCommand With {.Connection = conn, .CommandText = query}
+                    cmd.Parameters.AddWithValue("@id", id)
+                    cmd.Parameters.AddWithValue("@starDate", startDate)
+                    cmd.Parameters.AddWithValue("@userId", status)
+                    cmd.Parameters.AddWithValue("@startDate", userId)
+
+
+                    If showCommand Then
+                        Console.WriteLine(cmd.CommandText)
+                    End If
+
+                    Try
+                        conn.Open()
+                        cmd.ExecuteNonQuery()
+
+                        conn.Close()
+                    Catch ex As Exception
+                        Console.WriteLine(ex.Message)
+                    End Try
+                End Using
+            End Using
+
+            Return True
         End Function
     End Class
 
